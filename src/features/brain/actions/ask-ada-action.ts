@@ -80,7 +80,8 @@ export async function askAdaAction(
       1. Use o conteúdo do resumo para responder, mas pode expandir com seu conhecimento base se necessário.
       2. Seja concisa. Alunos de concurso valorizam tempo.
       3. Use markdown para formatar a resposta (negrito, listas, etc).
-      4. Se a pergunta não tiver nada a ver com TI ou com o resumo, responda gentilmente que seu foco é ajudar na aprovação em concursos de tecnologia.`,
+      4. Se a pergunta não tiver nada a ver com TI ou com o resumo, responda gentilmente que seu foco é ajudar na aprovação em concursos de tecnologia.
+      5. IMPORTANTE: Suas respostas devem ser SEMPRE em Português do Brasil (PT-BR), independente do idioma em que a pergunta for feita.`,
       messages: [
         ...formattedMessages,
         { role: "user", content: userMessage }
