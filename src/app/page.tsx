@@ -25,11 +25,13 @@ export default function Home() {
             <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary">Plataforma Especialista</span>
           </div>
           
-          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-8">
-            <TypingText text="Seu QG definitivo para" className="block text-foreground" />
-            <span className="text-glow animate-gradient-text bg-gradient-to-r from-ti-orange via-ti-red to-ti-crimson bg-clip-text text-transparent">
-              a aprovação em concursos de TI
-            </span>
+          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-8 leading-[1.1] text-foreground">
+            <TypingText text="Seu QG definitivo para " />
+            <TypingText 
+              text="aprovação em concursos de TI" 
+              className="text-primary" 
+              delay={1.6} 
+            />
           </h1>
           
           <p className="max-w-2xl mx-auto text-muted-foreground text-lg mb-12 leading-relaxed">

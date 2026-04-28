@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { 
   ResizableHandle, 
   ResizablePanel, 
@@ -9,13 +10,35 @@ import { getLibraryDataAction } from "@/features/library/actions/get-library-dat
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
+import { createClient } from "@/lib/supabase/server";
+import { db } from "@/lib/db";
+import { profiles } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { MobileLibraryNav } from "@/features/library/components/mobile-library-nav";
+
+import { LibrarySearch } from "@/features/library/components/library-search";
+
+export const dynamic = "force-dynamic";
+
 export default async function LibraryPage({ 
   searchParams 
 }: { 
-  searchParams: Promise<{ category?: string }> 
+  searchParams: Promise<{ category?: string; q?: string }> 
 }) {
-  const { category } = await searchParams;
-  const { categories, summaries } = await getLibraryDataAction(category);
+  const { category, q } = await searchParams;
+  const { categories, summaries } = await getLibraryDataAction(category, q);
+
+  // 1. Verificar status premium do usuário
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  let isUserPremium = false;
+  if (user && db) {
+    const profile = await db.query.profiles.findFirst({
+      where: eq(profiles.userId, user.id)
+    });
+    isUserPremium = profile?.isPremium || false;
+  }
 
   return (
     <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
@@ -23,13 +46,10 @@ export default async function LibraryPage({
       {/* Search Header */}
       <header className="h-16 border-b border-border flex items-center px-8 justify-between bg-background shrink-0 z-30">
         <div className="flex items-center gap-4 flex-1 max-w-xl">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
-            <Input 
-              placeholder="Pesquisar resumos por tema ou palavra-chave..." 
-              className="pl-10 bg-card/30 border-border text-foreground placeholder:text-muted-foreground/40 focus-visible:ring-primary h-11 rounded-xl"
-            />
-          </div>
+          <MobileLibraryNav categories={categories} activeSlug={category} />
+          <Suspense fallback={<div className="h-11 w-full bg-card/30 animate-pulse rounded-xl" />}>
+            <LibrarySearch />
+          </Suspense>
         </div>
         <div className="flex items-center gap-4">
           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">
@@ -59,7 +79,7 @@ export default async function LibraryPage({
 
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 pb-20">
               {summaries.map((summary) => (
-                <SummaryCard key={summary.id} summary={summary} />
+                <SummaryCard key={summary.id} summary={summary} isUserPremium={isUserPremium} />
               ))}
             </div>
 

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { MarkdownReader } from "@/features/library/components/markdown-reader";
 
 import { askAdaAction, ChatMessage } from "../actions/ask-ada-action";
 
@@ -127,7 +128,11 @@ export function AdaChatPane({ summaryId, title }: { summaryId?: string; title?: 
                     ? "bg-card border border-white/5 text-zinc-100" 
                     : "bg-primary text-white font-semibold shadow-primary/20"
                 )}>
-                  {msg.content}
+                  {msg.role === "assistant" ? (
+                    <MarkdownReader content={msg.content} className="prose-sm!" />
+                  ) : (
+                    msg.content
+                  )}
                 </div>
 
 

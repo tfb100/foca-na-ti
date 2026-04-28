@@ -18,7 +18,8 @@ export function MainHeader() {
         <div className="flex items-center gap-4 md:gap-8">
           <div className="hidden md:flex items-center gap-6 mr-4">
             <Link href="/library" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Biblioteca</Link>
-            <Link href="/protected" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Meu Painel</Link>
+            <Link href="/pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Preços</Link>
+            <Link href="/profile" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Meu Painel</Link>
           </div>
           
           <div className="flex items-center gap-3">

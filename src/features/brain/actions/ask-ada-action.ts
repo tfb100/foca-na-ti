@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { summaries } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { generateText } from "ai";
-import { google } from "@ai-sdk/google";
+import { createOpenAI } from "@ai-sdk/openai";
 
 export interface ChatMessage {
   role: "user" | "assistant";
@@ -40,9 +40,33 @@ export async function askAdaAction(
       }
     }
 
-    // 2. Chamada ao Gemini
+    const apiKey = process.env.OPENROUTER_API_KEY;
+    
+    if (!apiKey) {
+      console.error("DEBUG: OPENROUTER_API_KEY está faltando no process.env");
+    }
+
+    // Configurar o client customizado do OpenRouter usando a API compatível com OpenAI
+    const openrouter = createOpenAI({
+      baseURL: "https://openrouter.ai/api/v1",
+      apiKey: apiKey,
+      headers: {
+        "HTTP-Referer": "http://localhost:3000", // Necessário para rankings no OpenRouter
+        "X-Title": "Foca na TI",
+      }
+    });
+
+    // Filtrar histórico para garantir que não comece com mensagem do assistente (exigência de alguns modelos do OpenRouter)
+    const formattedMessages = history.map(m => ({ role: m.role as "user" | "assistant", content: m.content }));
+    
+    // Se a primeira mensagem for do assistente, removemos ela para evitar o erro 'invalid_prompt'
+    while (formattedMessages.length > 0 && formattedMessages[0].role === "assistant") {
+      formattedMessages.shift();
+    }
+
+    // 2. Chamada ao OpenRouter usando o roteador gratuito automático (escolhe o mais rápido/estável)
     const { text } = await generateText({
-      model: google("gemini-1.5-flash"),
+      model: openrouter("openrouter/free"),
       system: `Você é a ADA, uma mentora de IA especializada em concursos de TI. 
       Seu tom é profissional, encorajador e focado em eficiência.
       
@@ -58,7 +82,7 @@ export async function askAdaAction(
       3. Use markdown para formatar a resposta (negrito, listas, etc).
       4. Se a pergunta não tiver nada a ver com TI ou com o resumo, responda gentilmente que seu foco é ajudar na aprovação em concursos de tecnologia.`,
       messages: [
-        ...history.map(m => ({ role: m.role as "user" | "assistant", content: m.content })),
+        ...formattedMessages,
         { role: "user", content: userMessage }
       ],
     });
@@ -75,12 +99,18 @@ export async function askAdaAction(
       thoughts,
       sources: summaryId ? [{ title: summaryTitle, url: `/library/${summaryId}` }] : []
     };
-  } catch (error) {
-    const errorDetail = error instanceof Error ? error.message : "Erro desconhecido";
-    console.error("Erro na Ada AI (Gemini):", error);
+  } catch (error: any) {
+    console.error("Erro detalhado na Ada AI (OpenRouter):", {
+      name: error?.name,
+      message: error?.message,
+      statusCode: error?.statusCode,
+      responseBody: error?.responseBody,
+      data: error?.data
+    });
+    
     return {
-      answer: `Desculpe, tive um soluço técnico ao acessar meu cérebro Gemini.\n\n**Detalhe:** ${errorDetail}`,
-      thoughts: ["Erro na conexão com a API do Google."],
+      answer: `Desculpe, tive um soluço técnico ao processar sua dúvida.\n\n**Detalhe:** ${error?.message || "Erro desconhecido"}`,
+      thoughts: ["Erro na conexão com o provedor de IA via OpenRouter."],
       sources: []
     };
   }

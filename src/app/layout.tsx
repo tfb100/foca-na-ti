@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { MainHeader } from "@/components/main-header";
+import { Suspense } from "react";
 import "./globals.css";
 
 const inter = Inter({
@@ -47,7 +48,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <MainHeader />
-          {children}
+          <Suspense fallback={null}>
+            {children}
+          </Suspense>
           <Toaster position="top-center" richColors />
         </ThemeProvider>
       </body>

@@ -2,9 +2,9 @@
 
 import { db } from "@/lib/db";
 import { categories, summaries } from "@/db/schema";
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, ilike, or, and } from "drizzle-orm";
 
-export async function getLibraryDataAction(categorySlug?: string) {
+export async function getLibraryDataAction(categorySlug?: string, searchQuery?: string) {
   try {
     if (!db) {
       throw new Error("Database not initialized");
@@ -28,6 +28,9 @@ export async function getLibraryDataAction(categorySlug?: string) {
     }).from(summaries)
       .leftJoin(categories, eq(summaries.categoryId, categories.id));
 
+    // 3. Aplicar Filtros (Categoria e Busca)
+    const conditions = [];
+
     if (categorySlug) {
       const targetCategory = allCategories.find(c => c.slug === categorySlug);
       if (targetCategory) {
@@ -37,10 +40,22 @@ export async function getLibraryDataAction(categorySlug?: string) {
             .filter(c => c.parentId === targetCategory.id)
             .map(c => c.id)
         ];
-        
-        // @ts-ignore
-        summariesQuery = summariesQuery.where(inArray(summaries.categoryId, categoryIds));
+        conditions.push(inArray(summaries.categoryId, categoryIds));
       }
+    }
+
+    if (searchQuery) {
+      conditions.push(
+        or(
+          ilike(summaries.title, `%${searchQuery}%`),
+          ilike(summaries.shortDescription, `%${searchQuery}%`)
+        )
+      );
+    }
+
+    if (conditions.length > 0) {
+      // @ts-ignore
+      summariesQuery = summariesQuery.where(conditions.length > 1 ? and(...conditions) : conditions[0]);
     }
 
     const allSummaries = await summariesQuery;

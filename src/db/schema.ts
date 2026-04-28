@@ -5,8 +5,19 @@ export const profiles = pgTable("profiles", {
   userId: uuid("user_id").notNull().unique(),
   displayName: text("display_name"),
   isPremium: boolean("is_premium").default(false).notNull(),
+  xp: integer("xp").default(0).notNull(),
+  streak: integer("streak").default(0).notNull(),
+  lastStudyDate: timestamp("last_study_date", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const studyLogs = pgTable("study_logs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  profileId: uuid("profile_id").references(() => profiles.id).notNull(),
+  summaryId: uuid("summary_id").references(() => summaries.id).notNull(),
+  xpEarned: integer("xp_earned").notNull(),
+  completedAt: timestamp("completed_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 export const categories = pgTable("categories", {

@@ -16,9 +16,12 @@ interface SummaryCardProps {
       name: string;
     } | null;
   };
+  isUserPremium?: boolean;
 }
 
-export function SummaryCard({ summary }: SummaryCardProps) {
+export function SummaryCard({ summary, isUserPremium = false }: SummaryCardProps) {
+  const isLocked = summary.isPremium && !isUserPremium;
+  const href = isLocked ? "/pricing" : `/library/${summary.slug}`;
   const getRelevanceColor = (weight: number) => {
     if (weight >= 80) return "bg-ti-orange/10 text-ti-orange border-ti-orange/20 shadow-[0_0_15px_-3px_rgba(249,115,22,0.2)]";
     if (weight >= 50) return "bg-ti-red/10 text-ti-red border-ti-red/20";
@@ -26,8 +29,11 @@ export function SummaryCard({ summary }: SummaryCardProps) {
   };
 
   return (
-    <Link href={`/library/${summary.slug}`} className="block group">
-      <Card className="h-full border-border bg-card/40 backdrop-blur-md hover:bg-card/60 transition-all duration-300 hover:border-primary/30 relative overflow-hidden group-hover:shadow-glow">
+    <Link href={href} className={cn("block group", isLocked && "cursor-pointer")}>
+      <Card className={cn(
+        "h-full border-border bg-card/40 backdrop-blur-md hover:bg-card/60 transition-all duration-300 hover:border-primary/30 relative overflow-hidden group-hover:shadow-glow",
+        isLocked && "grayscale-[0.5] opacity-80"
+      )}>
         <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
           <div className="space-y-1">
             {summary.category && (
@@ -40,9 +46,9 @@ export function SummaryCard({ summary }: SummaryCardProps) {
             </CardTitle>
           </div>
           <div className="flex gap-2">
-            {summary.isPremium && (
-              <div className="bg-amber-500/10 p-1.5 rounded-full border border-amber-500/20">
-                <Lock className="h-3 w-3 text-amber-500" />
+            {isLocked && (
+              <div className="p-1.5 rounded-full border bg-amber-500 text-black border-amber-600 animate-pulse-slow">
+                <Lock className="h-3 w-3 fill-current" />
               </div>
             )}
           </div>
@@ -59,7 +65,7 @@ export function SummaryCard({ summary }: SummaryCardProps) {
             </Badge>
             
             <span className="text-[11px] text-muted-foreground/40 font-bold uppercase tracking-tight group-hover:text-primary transition-colors">
-              Acessar Conteúdo →
+              {isLocked ? "Desbloquear com Premium →" : "Acessar Conteúdo →"}
             </span>
           </div>
         </CardContent>

@@ -10,18 +10,53 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, MessageSquare, Share2, Bookmark } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { createClient } from "@/lib/supabase/server";
+import { db } from "@/lib/db";
+import { profiles, studyLogs } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
 import { AdaChatPane } from "@/features/brain/components/ada-chat-pane";
+import { CompleteStudyButton } from "@/features/library/components/complete-study-button";
+
+export const dynamic = "force-dynamic";
 
 export default async function SummaryDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const data = await getSummaryAction(slug);
-
-
+  
   if (!data) {
     redirect("/library");
   }
 
   const { summary, category } = data;
+
+  // 1. Verificar permissão de acesso
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  let isUserPremium = false;
+  let isCompleted = false;
+
+  if (user && db) {
+    const profile = await db.query.profiles.findFirst({
+      where: eq(profiles.userId, user.id)
+    });
+    isUserPremium = profile?.isPremium || false;
+
+    if (profile && db) {
+      const studyLog = await db.query.studyLogs.findFirst({
+        where: and(
+          eq(studyLogs.profileId, profile.id),
+          eq(studyLogs.summaryId, summary.id)
+        )
+      });
+      isCompleted = !!studyLog;
+    }
+  }
+
+  // Se o resumo é premium e o usuário não é, redireciona
+  if (summary.isPremium && !isUserPremium) {
+    redirect("/pricing");
+  }
 
   return (
     <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
@@ -71,6 +106,13 @@ export default async function SummaryDetailPage({ params }: { params: Promise<{ 
             <div className="h-full overflow-y-auto relative custom-scrollbar bg-background">
               <div className="max-w-4xl mx-auto py-12 px-6 lg:px-12">
                 <MarkdownReader content={summary.content} />
+                
+                <div className="mt-16 flex justify-center">
+                  <CompleteStudyButton 
+                    summaryId={summary.id} 
+                    isCompleted={isCompleted} 
+                  />
+                </div>
                 
                 <footer className="mt-20 pt-8 border-t border-border flex justify-between items-center text-muted-foreground/40 text-[10px] font-bold uppercase tracking-widest">
                   <p>© 2026 Foca na TI</p>

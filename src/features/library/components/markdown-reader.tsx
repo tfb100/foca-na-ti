@@ -6,6 +6,8 @@ import rehypeHighlight from "rehype-highlight";
 import rehypeRaw from "rehype-raw";
 import "highlight.js/styles/github-dark.css";
 import { cn } from "@/lib/utils";
+import { CodeBlock } from "./code-block";
+import { AlertCircle, HelpCircle, Flame } from "lucide-react";
 
 interface MarkdownReaderProps {
   content: string;
@@ -29,7 +31,7 @@ export function MarkdownReader({ content, className }: MarkdownReaderProps) {
             <h3 className={cn("text-xl font-bold tracking-tight text-foreground mt-10 mb-4", className)} {...props} />
           ),
           p: ({ className, ...props }) => (
-            <p className={cn("text-muted-foreground leading-relaxed mb-6 text-lg", className)} {...props} />
+            <div className={cn("text-muted-foreground leading-relaxed mb-6 text-lg", className)} {...props} />
           ),
           ul: ({ className, ...props }) => (
             <ul className={cn("list-disc list-outside ml-6 mb-6 space-y-3 text-muted-foreground text-lg", className)} {...props} />
@@ -54,7 +56,7 @@ export function MarkdownReader({ content, className }: MarkdownReaderProps) {
             );
           },
           pre: ({ className, ...props }) => (
-            <pre className={cn("bg-card/30 p-4 rounded-lg border border-border overflow-x-auto my-6 shadow-2xl", className)} {...props} />
+            <CodeBlock className={className} {...props} />
           ),
           table: ({ className, ...props }) => (
             <div className="overflow-x-auto my-6">
@@ -67,9 +69,43 @@ export function MarkdownReader({ content, className }: MarkdownReaderProps) {
           td: ({ className, ...props }) => (
             <td className={cn("border border-border p-3 text-muted-foreground", className)} {...props} />
           ),
-          blockquote: ({ className, ...props }) => (
-            <blockquote className={cn("border-l-4 border-primary pl-4 italic text-muted-foreground my-6 bg-muted py-4 pr-4 rounded-r-lg", className)} {...props} />
-          ),
+          blockquote: ({ className, children, ...props }) => {
+            const content = children?.toString() || "";
+            const isImportant = content.includes("[!]");
+            const isTip = content.includes("[?]");
+            const isExam = content.includes("[*]");
+            
+            if (isImportant || isTip || isExam) {
+              return (
+                <div className={cn(
+                  "my-8 p-6 rounded-2xl border-l-4 flex gap-4 items-start shadow-sm",
+                  isImportant && "bg-ti-red/5 border-ti-red text-ti-red/80",
+                  isTip && "bg-primary/5 border-primary text-primary/80",
+                  isExam && "bg-ti-orange/5 border-ti-orange text-ti-orange/80 animate-pulse-slow"
+                )}>
+                  <div className="shrink-0 mt-1">
+                    {isImportant && <AlertCircle className="h-5 w-5" />}
+                    {isTip && <HelpCircle className="h-5 w-5" />}
+                    {isExam && <Flame className="h-5 w-5" />}
+                  </div>
+                  <div className="prose-p:mb-0">
+                    <p className="font-black uppercase tracking-widest text-[10px] mb-1 opacity-60">
+                      {isImportant && "Importante"}
+                      {isTip && "Dica de Estudo"}
+                      {isExam && "Caiu na Prova!"}
+                    </p>
+                    {children}
+                  </div>
+                </div>
+              );
+            }
+
+            return (
+              <blockquote className={cn("border-l-4 border-primary pl-4 italic text-muted-foreground my-6 bg-muted py-4 pr-4 rounded-r-lg", className)} {...props}>
+                {children}
+              </blockquote>
+            );
+          },
           img: ({ className, alt, ...props }) => (
             <div className="my-8 space-y-2">
               <img 
