@@ -24,6 +24,8 @@ import { Badge } from "@/components/ui/badge";
 import { MarkdownReader } from "@/features/library/components/markdown-reader";
 
 import { askAdaAction, ChatMessage } from "../actions/ask-ada-action";
+import { saveAdaFeedbackAction } from "../actions/save-feedback-action";
+import { toast } from "sonner";
 
 interface Message {
   role: "user" | "assistant";
@@ -53,13 +55,37 @@ export function AdaChatPane({ summaryId, title }: { summaryId?: string; title?: 
     }
   }, [messages, isTyping]);
 
-  const handleFeedback = (idx: number, type: "like" | "dislike") => {
+  const handleFeedback = async (idx: number, type: "like" | "dislike") => {
+    const currentMsg = messages[idx];
+    // Se o usuário clicar de novo no mesmo, removemos o estado (toggle) mas não removemos do banco (MVP)
+    const isTogglingOff = currentMsg.feedback === type;
+    
     setMessages(prev => prev.map((msg, i) => {
       if (i === idx) {
-        return { ...msg, feedback: msg.feedback === type ? null : type };
+        return { ...msg, feedback: isTogglingOff ? null : type };
       }
       return msg;
     }));
+
+    if (!isTogglingOff) {
+      // Descobrir a última mensagem do usuário (pergunta que gerou esta resposta)
+      let userPrompt = "Pergunta desconhecida";
+      for (let i = idx - 1; i >= 0; i--) {
+        if (messages[i].role === "user") {
+          userPrompt = messages[i].content;
+          break;
+        }
+      }
+
+      toast.success(type === "like" ? "Obrigado! A Ada adora aprender." : "Obrigado! Registramos para melhorar a Ada.");
+
+      await saveAdaFeedbackAction({
+        summaryId,
+        userPrompt,
+        adaResponse: currentMsg.content,
+        feedbackType: type
+      });
+    }
   };
 
   const handleSend = async (overrideInput?: string | React.MouseEvent | React.KeyboardEvent) => {

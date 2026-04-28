@@ -41,3 +41,14 @@ export const summaries = pgTable("summaries", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
+
+export const aiFeedbacks = pgTable("ai_feedbacks", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  profileId: uuid("profile_id").references(() => profiles.id).notNull(),
+  summaryId: uuid("summary_id").references(() => summaries.id), // Pode ser nulo se a pergunta for muito geral
+  userPrompt: text("user_prompt").notNull(),
+  adaResponse: text("ada_response").notNull(),
+  feedbackType: text("feedback_type").notNull(), // 'like' ou 'dislike'
+  feedbackNote: text("feedback_note"), // Opcional: "O que faltou na resposta?"
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});

@@ -29,6 +29,13 @@
       "when": 1776653514209,
       "tag": "0003_redundant_speed_demon",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1777374817128,
+      "tag": "0004_spotty_wild_pack",
+      "breakpoints": true
     }
   ]
 }
