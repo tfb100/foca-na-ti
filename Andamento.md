@@ -11,7 +11,7 @@
 | :--- | :--- | :--- | :--- |
 | **1. Fundação** | Auth, Perfis, Login Social e Assinaturas | ✅ Concluído | 100% |
 | **2. Biblioteca** | Navegação, Busca, Visualizador e Mobile | ✅ Concluído | 100% |
-| **3. Ada AI** | Chat Contextual (RAG), Split-view e ELI5 | 🔄 Polimento | 90% |
+| **3. Ada AI** | Chat Contextual (RAG), ELI5 e Feedback | ✅ Concluído | 100% |
 | **4. Tendências** | Heatmaps de provas e Roadmaps Sugeridos | ❌ Pendente | 0% |
 | **5. Retenção** | XP, Ofensivas (Done) / Flashcards SRS (Pending) | 🔄 Em curso | 40% |
 | **6. Admin** | Painel de Curadoria e Gestão de Pesos | ❌ Pendente | 0% |
@@ -33,7 +33,8 @@
 ### Ada AI (Versão 1.0)
 - [x] **Chat Contextual:** RAG (Retrieval-Augmented Generation) integrado ao banco de dados.
 - [x] **Interface Split-view:** Painel lateral ajustável para não perder o foco.
-- [x] **Atalho ELI5:** Explicações simplificadas automáticas.
+- [x] **Atalhos Rápidos:** Botões de 1-clique para explicações ELI5, simulados e exemplos.
+- [x] **Sistema de Feedback:** Avaliação de respostas (Like/Dislike) integrada.
 
 ### Gamificação (Base)
 - [x] **Sistema de XP:** Ganho de pontos por leitura concluída.

@@ -13,7 +13,11 @@ import {
   Trash2, 
   BrainCircuit,
   Terminal,
-  ExternalLink
+  ExternalLink,
+  ThumbsUp,
+  ThumbsDown,
+  Lightbulb,
+  MessageSquare
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +30,7 @@ interface Message {
   content: string;
   thoughts?: string[];
   sources?: { title: string; url: string }[];
+  feedback?: "like" | "dislike" | null;
 }
 
 export function AdaChatPane({ summaryId, title }: { summaryId?: string; title?: string }) {
@@ -48,10 +53,20 @@ export function AdaChatPane({ summaryId, title }: { summaryId?: string; title?: 
     }
   }, [messages, isTyping]);
 
-  const handleSend = async () => {
-    if (!input.trim() || isTyping) return;
+  const handleFeedback = (idx: number, type: "like" | "dislike") => {
+    setMessages(prev => prev.map((msg, i) => {
+      if (i === idx) {
+        return { ...msg, feedback: msg.feedback === type ? null : type };
+      }
+      return msg;
+    }));
+  };
+
+  const handleSend = async (overrideInput?: string | React.MouseEvent | React.KeyboardEvent) => {
+    const textToSend = typeof overrideInput === "string" ? overrideInput : input;
+    if (!textToSend.trim() || isTyping) return;
     
-    const userContent = input;
+    const userContent = textToSend;
     const userMsg: Message = { role: "user", content: userContent };
     
     setMessages(prev => [...prev, userMsg]);
@@ -163,18 +178,41 @@ export function AdaChatPane({ summaryId, title }: { summaryId?: string; title?: 
                 </div>
               )}
 
-              {/* Sources */}
-              {msg.sources && msg.sources.length > 0 && (
-                <div className="mt-3 ml-11 flex flex-wrap gap-2">
-                  {msg.sources.map((source, sIdx) => (
-                    <a key={sIdx} href={source.url} target="_blank" rel="noopener noreferrer">
-                      <Badge variant="outline" className="text-[10px] bg-white/5 border-white/5 hover:border-primary/50 transition-colors cursor-pointer gap-1.5 py-1">
-                        <ExternalLink className="h-3 w-3" />
-                        {source.title}
-                      </Badge>
-                    </a>
-                  ))}
-
+              {/* Message Actions (Sources & Feedback) */}
+              {msg.role === "assistant" && (
+                <div className="mt-3 ml-11 flex flex-wrap items-center gap-4">
+                  {msg.sources && msg.sources.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {msg.sources.map((source, sIdx) => (
+                        <a key={sIdx} href={source.url} target="_blank" rel="noopener noreferrer">
+                          <Badge variant="outline" className="text-[10px] bg-white/5 border-white/5 hover:border-primary/50 transition-colors cursor-pointer gap-1.5 py-1">
+                            <ExternalLink className="h-3 w-3" />
+                            {source.title}
+                          </Badge>
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Feedback */}
+                  <div className="flex gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className={cn("h-6 w-6 rounded-full hover:bg-white/10 hover:text-emerald-400 transition-colors text-muted-foreground/40", msg.feedback === "like" && "text-emerald-400 bg-emerald-500/10")}
+                      onClick={() => handleFeedback(idx, "like")}
+                    >
+                      <ThumbsUp className="h-3 w-3" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className={cn("h-6 w-6 rounded-full hover:bg-white/10 hover:text-red-400 transition-colors text-muted-foreground/40", msg.feedback === "dislike" && "text-red-400 bg-red-500/10")}
+                      onClick={() => handleFeedback(idx, "dislike")}
+                    >
+                      <ThumbsDown className="h-3 w-3" />
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
@@ -195,8 +233,40 @@ export function AdaChatPane({ summaryId, title }: { summaryId?: string; title?: 
         </div>
       </ScrollArea>
 
-      {/* Input */}
-      <div className="p-4 border-t border-white/5 bg-background/50 backdrop-blur-sm">
+      {/* Input & Quick Actions */}
+      <div className="p-4 border-t border-white/5 bg-background/50 backdrop-blur-sm flex flex-col gap-3">
+        {messages.length === 1 && !isTyping && (
+          <div className="flex flex-wrap gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-8 text-[11px] bg-white/5 border-white/5 hover:border-primary/50 hover:bg-primary/10 rounded-full gap-1.5"
+              onClick={() => handleSend("👶 Me explique esse conteúdo de forma bem simples (ELI5).")}
+            >
+              <Lightbulb className="h-3 w-3 text-amber-400" />
+              Explicar Simples
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-8 text-[11px] bg-white/5 border-white/5 hover:border-primary/50 hover:bg-primary/10 rounded-full gap-1.5"
+              onClick={() => handleSend("💡 Me dê um exemplo prático focado em provas de concurso.")}
+            >
+              <Sparkles className="h-3 w-3 text-primary" />
+              Exemplo Prático
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-8 text-[11px] bg-white/5 border-white/5 hover:border-primary/50 hover:bg-primary/10 rounded-full gap-1.5"
+              onClick={() => handleSend("📝 Crie um mini-simulado com 3 questões difíceis sobre este resumo.")}
+            >
+              <MessageSquare className="h-3 w-3 text-emerald-400" />
+              Criar Simulado
+            </Button>
+          </div>
+        )}
+
         <div className="relative group">
           <Input 
             value={input}

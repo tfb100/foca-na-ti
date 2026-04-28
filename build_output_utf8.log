@@ -1,0 +1,39 @@
+﻿
+> build
+> next build
+
+Ôû▓ Next.js 16.2.4 (Turbopack)
+- Environments: .env.local
+- Cache Components enabled
+
+  Creating an optimized production build ...
+Ô£ô Compiled successfully in 5.2s
+  Running TypeScript ...
+  Finished TypeScript in 5.1s ...
+  Collecting page data using 15 workers ...
+  Generating static pages using 15 workers (0/18) ...
+node.exe : Error: Route "/sign-in": Uncached data was accessed outside of <Suspense>. This delays the entire page from 
+rendering, resulting in a slow user experience. Learn more: https://nextjs.org/docs/messages/blocking-route
+No linha:1 caractere:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Error: Route "/.../blocking-route:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    at <unknown> (src\components\theme-provider.tsx:7:33)
+    at body (<anonymous>)
+    at html (<anonymous>)
+   5 | import { type ThemeProviderProps } from "next-themes";
+   6 |
+>  7 | export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
+     |                                 ^
+   8 |   return <NextThemesProvider {...props}>{children}</NextThemesProvider>;
+   9 | }
+  10 |
+To get a more detailed stack trace and pinpoint the issue, try one of the following:
+  - Start the app in development mode by running `next dev`, then open "/sign-in" in your browser to investigate the 
+error.
+  - Rerun the production build with `next build --debug-prerender` to generate better stack traces.
+Error occurred prerendering page "/sign-in". Read more: https://nextjs.org/docs/messages/prerender-error
+Export encountered an error on /(auth)/sign-in/page: /sign-in, exiting the build.
+Ô¿» Next.js build worker exited with code: 1 and signal: null
