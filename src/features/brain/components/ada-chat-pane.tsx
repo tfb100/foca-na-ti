@@ -88,8 +88,8 @@ export function AdaChatPane({ summaryId, title }: { summaryId?: string; title?: 
     }
   };
 
-  const handleSend = async (overrideInput?: string | React.MouseEvent | React.KeyboardEvent) => {
-    const textToSend = typeof overrideInput === "string" ? overrideInput : input;
+  const handleSend = async (overrideText?: string) => {
+    const textToSend = typeof overrideText === "string" ? overrideText : input;
     if (!textToSend.trim() || isTyping) return;
     
     const userContent = textToSend;
@@ -125,6 +125,12 @@ export function AdaChatPane({ summaryId, title }: { summaryId?: string; title?: 
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
 
   return (
     <div className="flex flex-col h-full bg-background border-l border-white/5">
@@ -297,7 +303,7 @@ export function AdaChatPane({ summaryId, title }: { summaryId?: string; title?: 
           <Input 
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSend()}
+            onKeyDown={handleKeyDown}
             placeholder="Pergunte sobre este tema..."
             className="pr-12 bg-white/5 border-white/5 text-foreground placeholder:text-muted-foreground/40 focus-visible:ring-primary h-11 rounded-xl group-hover:border-primary/50 transition-all font-semibold"
           />
@@ -307,7 +313,7 @@ export function AdaChatPane({ summaryId, title }: { summaryId?: string; title?: 
             size="icon" 
             className="absolute right-1.5 top-1.5 h-8 w-8 transition-transform active:scale-90"
             disabled={!input.trim() || isTyping}
-            onClick={handleSend}
+            onClick={() => handleSend()}
           >
             <Send className="h-4 w-4" />
           </Button>
