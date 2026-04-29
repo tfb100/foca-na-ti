@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { summaries } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { generateText } from "ai";
-import { createOpenAI } from "@ai-sdk/openai";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 
 export interface ChatMessage {
   role: "user" | "assistant";
@@ -46,9 +46,8 @@ export async function askAdaAction(
       console.error("DEBUG: OPENROUTER_API_KEY está faltando no process.env");
     }
 
-    // Configurar o client customizado do OpenRouter usando a API compatível com OpenAI
-    const openrouter = createOpenAI({
-      baseURL: "https://openrouter.ai/api/v1",
+    // Configurar o client customizado do OpenRouter usando o provider oficial
+    const openrouter = createOpenRouter({
       apiKey: apiKey,
       headers: {
         "HTTP-Referer": "http://localhost:3000", // Necessário para rankings no OpenRouter
@@ -59,6 +58,7 @@ export async function askAdaAction(
     // Filtrar histórico para garantir que não comece com mensagem do assistente (exigência de alguns modelos do OpenRouter)
     const formattedMessages = history.map(m => ({ role: m.role as "user" | "assistant", content: m.content }));
     
+    
     // Se a primeira mensagem for do assistente, removemos ela para evitar o erro 'invalid_prompt'
     while (formattedMessages.length > 0 && formattedMessages[0].role === "assistant") {
       formattedMessages.shift();
@@ -66,7 +66,7 @@ export async function askAdaAction(
 
     // 2. Chamada ao OpenRouter usando um modelo free específico e estável
     const { text } = await generateText({
-      model: openrouter("meta-llama/llama-3.3-70b-instruct:free"),
+      model: openrouter("openrouter/free"),
       system: `Você é a ADA, uma mentora de IA especializada em concursos de TI. 
       Seu tom é profissional, encorajador e focado em eficiência.
       
@@ -77,11 +77,12 @@ export async function askAdaAction(
       ---
       
       INSTRUÇÕES:
-      1. Use o conteúdo do resumo para responder, mas pode expandir com seu conhecimento base se necessário.
-      2. Seja concisa. Alunos de concurso valorizam tempo.
-      3. Use markdown para formatar a resposta (negrito, listas, etc).
-      4. Se a pergunta não tiver nada a ver com TI ou com o resumo, responda gentilmente que seu foco é ajudar na aprovação em concursos de tecnologia.
-      5. IMPORTANTE: Suas respostas devem ser SEMPRE em Português do Brasil (PT-BR), independente do idioma em que a pergunta for feita.`,
+      1. PRIORIDADE MÁXIMA: Tente extrair e basear sua resposta no CONTEÚDO DO RESUMO acima.
+      2. EXPANSAO: Caso a informação solicitada não esteja no resumo, você PODE usar seu conhecimento base para responder, CONTANTO que a dúvida seja estritamente relacionada ao tema de TI abordado.
+      3. REDIRECIONAMENTO: Se a pergunta não tiver nenhuma relação com a matéria ou com TI, NÃO responda. Indique educadamente que seu foco é aprovação em TI e sugira que o usuário procure o tópico correto.
+      4. Seja concisa. Alunos de concurso valorizam tempo.
+      5. Use markdown para formatar a resposta (negrito, listas, etc).
+      6. IMPORTANTE: Suas respostas devem ser SEMPRE em Português do Brasil (PT-BR), independente do idioma em que a pergunta for feita.`,
       messages: [
         ...formattedMessages,
         { role: "user", content: userMessage }
