@@ -66,7 +66,7 @@ export async function askAdaAction(
 
     // 2. Chamada ao OpenRouter usando um modelo free específico e estável
     const { text } = await generateText({
-      model: openrouter("google/gemma-2-9b-it:free"),
+      model: openrouter("meta-llama/llama-3.3-70b-instruct:free"),
       system: `Você é a ADA, uma mentora de IA especializada em concursos de TI. 
       Seu tom é profissional, encorajador e focado em eficiência.
       
