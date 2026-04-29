@@ -64,9 +64,9 @@ export async function askAdaAction(
       formattedMessages.shift();
     }
 
-    // 2. Chamada ao OpenRouter usando o roteador gratuito automático (escolhe o mais rápido/estável)
+    // 2. Chamada ao OpenRouter usando um modelo free específico e estável
     const { text } = await generateText({
-      model: openrouter("openrouter/free"),
+      model: openrouter("google/gemma-2-9b-it:free"),
       system: `Você é a ADA, uma mentora de IA especializada em concursos de TI. 
       Seu tom é profissional, encorajador e focado em eficiência.
       
@@ -109,8 +109,13 @@ export async function askAdaAction(
       data: error?.data
     });
     
+    // Extraindo detalhes úteis do provedor para depuração em tela
+    const errorDetails = error?.responseBody 
+      ? JSON.stringify(error.responseBody) 
+      : (error?.message || "Erro desconhecido");
+
     return {
-      answer: `Desculpe, tive um soluço técnico ao processar sua dúvida.\n\n**Detalhe:** ${error?.message || "Erro desconhecido"}`,
+      answer: `Desculpe, tive um soluço técnico ao processar sua dúvida.\n\n**Detalhe:** ${errorDetails}`,
       thoughts: ["Erro na conexão com o provedor de IA via OpenRouter."],
       sources: []
     };
