@@ -86,8 +86,7 @@ export async function askAdaAction(
       messages: [
         ...formattedMessages,
         { role: "user", content: userMessage }
-      ],
-      maxTokens: 2048,
+      ]
     });
 
     // 3. Simulação de Pensamentos Analíticos (Baseado no fluxo real)
